@@ -1,69 +1,38 @@
-const http = require('http');
 const path = require('path');
-const fs = require('fs');
+const express = require('express');
+const exphds = require('express-handlebars');
 
-const server = http.createServer((req, res) => {
-    if (req.method === 'GET') {
-        res.writeHead(200, {
-            'Content-Type': 'text/html; charset=utf-8'
-        });
+const app = express();
 
-        if (req.url === '/') {
-            fs.readFile(
-                path.join(__dirname, 'views', 'index.html'),
-                { charset: 'utf-8' },
-                (err, content) => {
-                    if (err) {
-                        throw err;
-                    }
-
-                    res.end(content)
-                }
-            );
-        } else if (req.url === '/about') {
-            fs.readFile(
-            path.join(__dirname, 'views', 'about.html'),
-                { charset: 'utf-8' },
-                (err, content) => {
-                    if (err) {
-                        throw err;
-                    }
-
-                    res.end(content)
-                }
-            );
-        } else if (req.url === '/api/users') {
-            res.writeHead(200, {
-                'Content-Type': 'text/json'
-            });
-
-            const users = [
-                {name: 'Vlad', age: 25},
-                {name: 'Pavel', age: 23}
-            ];
-
-            res.end(JSON.stringify(users));
-        }
-    } else if (req.method === 'POST') {
-        const body = [];
-
-        res.writeHead(200, {
-            'Content-Type': 'text/html; charset=utf-8'
-        });
-
-        req.on('data', data => {
-            console.log('!');
-            body.push(Buffer.from(data));
-        });
-
-        req.on('end', () => {
-            const message = body.toString().split('=')[1];
-
-            res.end(`Your message: ${message}`);
-        });
-    }
+const hbs = exphds.create({
+  defaultLayout: 'main',
+  extname: 'hbs'
 });
 
-server.listen(3000, () => {
-    console.log('Server is running...');
+app.engine('hbs', hbs.engine);
+app.set('view engine', 'hbs');
+app.set('views', 'views');
+
+app.use(express.static('public'));
+
+app.get('/', (req, res) => {
+  res.status(200);
+
+  // res.sendFile(path.join(__dirname, 'views', 'index.html'));
+
+  res.render('index');
+});
+ 
+app.get('/about', (req, res) => {
+  res.status(200);
+
+  // res.sendFile(path.join(__dirname, 'views', 'about.html'));
+  
+  res.render('about')
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(3000, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
