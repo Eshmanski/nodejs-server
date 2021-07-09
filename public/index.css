@@ -1,33 +1,67 @@
 .nav-wrapper {
-    padding: 0 2rem;
+  padding: 0 2rem;
+}
+
+.card-image img {
+  padding: 2rem;
 }
 
 .price {
-    font-size: 2rem;
+  font-size: 2rem;
 }
 
 .course {
-   width: 100%;
-   display: flex;
-   flex-direction: column;
-   align-items: center; 
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .course h1 {
-    margin-bottom: 2rem;
+  margin-bottom: 2rem;
 }
 
 .course img {
-    min-width: 600px;
-    height: auto;
+  min-width: 600px;
+  height: auto;
 }
 
 .course .price.big {
-    font-size: 2.5rem;
+  font-size: 2.5rem;
 }
 
 .card-action.actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+
+.course-form {
+  margin-bottom: 2rem;
+}
+
+/* .modal-out {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(143, 143, 143, 0.534);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-in {
+  border: 1px solid rgb(109, 109, 109);
+  width: 500px;
+  height: 400px;
+  text-align: center;
+  vertical-align: middle;
+  background-color: white;
+  padding: 50px;
+}
+
+.hidden {
+  display: none;
+} */

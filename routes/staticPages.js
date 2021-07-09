@@ -8,7 +8,7 @@ const staticDir = path.join(__dirname, '..', 'views', 'static');
 console.log(path.join(staticDir, 'index.html'));
 router.get('/', (req, res) => {
   res.status(200);
-  
+
   res.sendFile(path.join(staticDir, 'index.html'));
 });
 
