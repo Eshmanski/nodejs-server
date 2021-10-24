@@ -1,69 +1,67 @@
-const http = require('http');
 const path = require('path');
-const fs = require('fs');
+const csrf = require('csurf');
+const flash = require('connect-flash');
+const express = require('express');
+const exphbs = require('express-handlebars');
+const homeRoutes = require('./routes/home');
+const addRoutes = require('./routes/add');
+const coursesRoutes = require('./routes/courses');
+const cartRoutes = require('./routes/cart');
+const ordersRoutes = require('./routes/orders');
+const authRoutes = require('./routes/auth');
+const session = require('express-session');
+const MongoStore = require('connect-mongodb-session')(session);
+const mongoose = require('mongoose');
+const varMiddleware = require('./middleware/variables');
+const userMiddleware = require('./middleware/user');
+const app = express();
 
-const server = http.createServer((req, res) => {
-    if (req.method === 'GET') {
-        res.writeHead(200, {
-            'Content-Type': 'text/html; charset=utf-8'
-        });
-
-        if (req.url === '/') {
-            fs.readFile(
-                path.join(__dirname, 'views', 'index.html'),
-                { charset: 'utf-8' },
-                (err, content) => {
-                    if (err) {
-                        throw err;
-                    }
-
-                    res.end(content)
-                }
-            );
-        } else if (req.url === '/about') {
-            fs.readFile(
-            path.join(__dirname, 'views', 'about.html'),
-                { charset: 'utf-8' },
-                (err, content) => {
-                    if (err) {
-                        throw err;
-                    }
-
-                    res.end(content)
-                }
-            );
-        } else if (req.url === '/api/users') {
-            res.writeHead(200, {
-                'Content-Type': 'text/json'
-            });
-
-            const users = [
-                {name: 'Vlad', age: 25},
-                {name: 'Pavel', age: 23}
-            ];
-
-            res.end(JSON.stringify(users));
-        }
-    } else if (req.method === 'POST') {
-        const body = [];
-
-        res.writeHead(200, {
-            'Content-Type': 'text/html; charset=utf-8'
-        });
-
-        req.on('data', data => {
-            console.log('!');
-            body.push(Buffer.from(data));
-        });
-
-        req.on('end', () => {
-            const message = body.toString().split('=')[1];
-
-            res.end(`Your message: ${message}`);
-        });
-    }
+const PORT = process.env.PORT || 3000;
+const MONGO_PASS = '3U4fxZU3cchM3BMP';
+const MONGO_URI = `mongodb+srv://Eshmanski:${MONGO_PASS}@cluster0.lr9ll.mongodb.net/shop`;
+const store = new MongoStore({
+  collection: 'sessions',
+  uri: MONGO_URI
 });
 
-server.listen(3000, () => {
-    console.log('Server is running...');
+const hbs = exphbs.create({
+  defaultLayout: 'main',
+  extname: 'hbs'
 });
+
+app.engine('hbs', hbs.engine);
+app.set('view engine', 'hbs');
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({extended: true}));
+app.use(session({
+  secret: 'some secret value',
+  resave: false,
+  saveUninitialized: false,
+  store
+}));
+app.use(csrf());
+app.use(flash());
+app.use(varMiddleware);
+app.use(userMiddleware);
+
+app.use('/', homeRoutes);
+app.use('/add', addRoutes);
+app.use('/courses', coursesRoutes);
+app.use('/cart', cartRoutes);
+app.use('/orders', ordersRoutes);
+app.use('/auth', authRoutes);
+
+async function start() {
+  try {
+    await mongoose.connect(MONGO_URI, { useNewUrlParser: true });
+
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.warn(err);
+  }
+}
+
+start();
