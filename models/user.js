@@ -1,14 +1,15 @@
 const { Schema, model } = require('mongoose');
+const course = require('./course');
 
 const userSchema = new Schema({
   email: {
     type: String,
-    required: true,
+    required: true
   },
   name: String,
   password: {
     type: String,
-    required: true,
+    require: true
   },
   cart: {
     items: [
@@ -30,17 +31,17 @@ const userSchema = new Schema({
 
 userSchema.methods.addToCart = function(course) {
   const items = [...this.cart.items];
-  
+
   const idx = items.findIndex(c => {
     return c.courseId.toString() === course._id.toString();
   });
 
   if (idx >= 0) {
-    items[idx].count++;
+    items[idx].count = items[idx].count + 1;
   } else {
     items.push({
-      courseId: course._id,
-      count: 1
+      count: 1,
+      courseId: course._id
     });
   }
 
@@ -49,14 +50,13 @@ userSchema.methods.addToCart = function(course) {
   return this.save();
 }
 
-userSchema.methods.removeFromCart = function(id) {
+userSchema.methods.remoteFromCart = function(courseId) {
   let items = [...this.cart.items];
-  const idx = items.findIndex(c => {
-    return c.courseId.toString() === id.toString();
-  });
+
+  const idx = items.findIndex(c => c.courseId.toString() === courseId);
 
   if (items[idx].count === 1) {
-    items = items.filter(c => c.courseId.toString() !== id.toString());
+    items = items.find(c => c.courseId.toString() != courseId.toString()) || [];
   } else {
     items[idx].count--;
   }
@@ -67,7 +67,7 @@ userSchema.methods.removeFromCart = function(id) {
 }
 
 userSchema.methods.clearCart = function() {
-  this.cart = { items: []};
+  this.cart = { items: [] };
 
   return this.save();
 }

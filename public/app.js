@@ -1,7 +1,7 @@
 const toCurrency = price => {
   return new Intl.NumberFormat('ru-RU', {
     currency: 'rub',
-    style: 'currency',
+    style: 'currency'
   }).format(price);
 }
 
@@ -16,57 +16,53 @@ const toDate = date => {
   }).format(new Date(date));
 }
 
-document.querySelectorAll('.price').forEach(node => 
-  node.textContent = toCurrency(node.textContent
-));
+document.querySelectorAll('.price').forEach(node => {
+  node.textContent = toCurrency(node.textContent);
+});
 
 document.querySelectorAll('.date').forEach(node => {
   node.textContent = toDate(node.textContent);
 });
 
-const $card = document.querySelector('#card');
+const $cart = document.querySelector('#cart');
 
-if ($card) {
-  $card.addEventListener('click', event => {
+if ($cart) {
+  $cart.addEventListener('click', event => {
     if (event.target.classList.contains('js-remove')) {
       const id = event.target.dataset.id;
       const csrf = event.target.dataset.csrf;
 
-      fetch('/card/remove/' + id, { 
+      fetch('/cart/remove/' + id, {
         method: 'delete',
         headers: {
           'X-XSRF-TOKEN': csrf
         }
       })
         .then(res => res.json())
-        .then(card => {
-          if (card.courses.length) {
-            const html = card.courses.map(c => {
+        .then(cart => {
+          if (cart.courses.length) {
+            const html = cart.courses.map(c => {
               return `
-										<tr>
-												<td>${c.title}</td>
-												<td>${c.count}</td>
-												<td>
-														<button class="btn btm-small js-remove" data-id="${c.id}">Удалить</button>
-												</td>
-										</tr>
-										`
+              <tr>
+                <td>${c.title}</td>
+                <td>${c.count}</td>
+                <td>
+                  <button 
+                    class="btn btn-small js-remove" 
+                    data-id="${c.id}">
+                      Удалить
+                  </button>
+                </td>
+              </tr>
+              `
             }).join('');
-
-            $card.querySelector('tbody').innerHTML = html;
-            $card.querySelector('.price').textContent = toCurrency(card.price);
+            $cart.querySelector('tbody').innerHTML = html;
+            $cart.querySelector('.price').textContent = toCurrency(cart.price);
           } else {
-            $card.innerHTML = '<p>Корзина пуста</p>'
+            $cart.innerHTML = '<p>Корзина пуста</p>';
           }
-        });
+        })
+        .catch(err => console.warn(err));
     }
   });
 }
-
-M.Tabs.init(document.querySelectorAll('.tabs'));
-
-// const modal = document.querySelector('.modal-out');
-
-// document.addEventListener('click', () => {
-//   modal.classList.toggle('hidden');
-// })

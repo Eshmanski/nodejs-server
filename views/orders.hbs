@@ -7,15 +7,15 @@
         <div class="card">
           <div class="card-content">
             <span class="card-title">
-              Заказ <small>{{_id}}</small>
+              Заказ <small> {{_id}} </small>
             </span>
             <p class="date">{{date}}</p>
-            <p><em>{{user.userId.name}}</em> ({{user.userId.email}})</p>
+            <p><em>{{user.name}}</em> {{user.email}}</p>
 
             <ol>
               {{#each courses}}
                 <li>
-                  {{course.title}} (x<strong>{{count}}</strong>)
+                  {{courseId.title}} (x<strong>{{count}}</strong>)
                 </li>
               {{/each}}
             </ol>

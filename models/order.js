@@ -3,8 +3,9 @@ const { Schema, model } = require('mongoose');
 const orderSchema = new Schema({
   courses: [
     {
-      course: {
-        type: Object,
+      courseId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Course',
         required: true
       },
       count: {
@@ -14,17 +15,19 @@ const orderSchema = new Schema({
     }
   ],
   user: {
-    name: String,
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    }
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  price: {
+    type: Number,
+    required: true,
   },
   date: {
     type: Date,
-    default: Date.now
+    dafault: Date.now
   }
 });
+
 
 module.exports = model('Order', orderSchema);

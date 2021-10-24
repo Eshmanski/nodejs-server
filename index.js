@@ -1,43 +1,39 @@
 const path = require('path');
 const csrf = require('csurf');
 const flash = require('connect-flash');
-const mongoose = require('mongoose');
 const express = require('express');
-const exphds = require('express-handlebars');
-const session = require('express-session');
-const MongoStore = require('connect-mongodb-session')(session);
-const staticRouter = require('./routes/staticPages');
+const exphbs = require('express-handlebars');
 const homeRoutes = require('./routes/home');
-const cardRoutes = require('./routes/card');
 const addRoutes = require('./routes/add');
 const coursesRoutes = require('./routes/courses');
+const cartRoutes = require('./routes/cart');
 const ordersRoutes = require('./routes/orders');
 const authRoutes = require('./routes/auth');
+const session = require('express-session');
+const MongoStore = require('connect-mongodb-session')(session);
+const mongoose = require('mongoose');
 const varMiddleware = require('./middleware/variables');
 const userMiddleware = require('./middleware/user');
-
-const PORT = process.env.PORT || 3000;
-const MONGODB_PASS = '3U4fxZU3cchM3BMP';
-const MONGODB_URI = `mongodb+srv://Eshmanski:${MONGODB_PASS}@cluster0.lr9ll.mongodb.net/shop`;
-
 const app = express();
 
-const hbs = exphds.create({
+const PORT = process.env.PORT || 3000;
+const MONGO_PASS = '3U4fxZU3cchM3BMP';
+const MONGO_URI = `mongodb+srv://Eshmanski:${MONGO_PASS}@cluster0.lr9ll.mongodb.net/shop`;
+const store = new MongoStore({
+  collection: 'sessions',
+  uri: MONGO_URI
+});
+
+const hbs = exphbs.create({
   defaultLayout: 'main',
   extname: 'hbs'
 });
 
-const store = new MongoStore({
-  collection: 'sessions',
-  uri: MONGODB_URI,
-})
-
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
-app.set('views', 'views');
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 app.use(session({
   secret: 'some secret value',
   resave: false,
@@ -52,25 +48,19 @@ app.use(userMiddleware);
 app.use('/', homeRoutes);
 app.use('/add', addRoutes);
 app.use('/courses', coursesRoutes);
-app.use('/card', cardRoutes);
+app.use('/cart', cartRoutes);
 app.use('/orders', ordersRoutes);
-app.use('/auth', authRoutes)
-// StaticPages
-app.use('/static', staticRouter);
+app.use('/auth', authRoutes);
 
 async function start() {
   try {
-    await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useFindAndModify: false,
-    });
+    await mongoose.connect(MONGO_URI, { useNewUrlParser: true });
 
-    app.listen(3000, () => {
+    app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
-  } catch (e) {
-    console.warn(e);
+  } catch (err) {
+    console.warn(err);
   }
 }
 

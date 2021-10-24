@@ -1,55 +1,45 @@
 const { Router } = require('express');
 const Order = require('../models/order');
 const auth = require('../middleware/auth');
-
 const router = Router();
 
-router.get('/', auth, async(req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
-    const orders = await Order.find({'user.userId': req.user._id})
-      .populate('user.userId').lean();
+    const orders = await Order.find({'user': req.user._id})
+      .populate('user')
+      .populate('courses.courseId')
+      .lean();
 
     res.render('orders', {
-      isOrders: true,
+      isOrder: true,
       title: 'Заказы',
-      orders: orders.map(o => {
-        return {
-          ...o,
-          price: o.courses.reduce((total, c) => {
-            return total += c.count * c.course.price
-          }, 0)
-        };
-      })
+      orders
     });
   } catch (e) {
     console.warn(e);
   }
 });
 
-router.post('/', auth, async(req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
-  const user = await req.user
-    .populate('cart.items.courseId')
-    .execPopulate();
+    const user = req.user;
+    const { items } = await user.cart.populate('items.courseId');
+    const price = items.reduce((total, c) => {
+      return total += c.count * c.courseId.price;
+    }, 0);
 
-  const courses = user.cart.items.map(i => ({
-    count: i.count,
-    course: { ...i.courseId._doc }
-  }));
+    const order = new Order({
+      user: user._id,
+      courses: user.cart.items,
+      price
+    });
 
-  const order = new Order({
-    user: {
-      name: req.user.name,
-      userId: req.user
-    },
-    courses
-  });
+    await order.save();
 
-  await order.save();
-  await req.user.clearCart();
+    await req.user.clearCart();
 
-  res.redirect('/orders');
-  } catch(e) {
+    res.redirect('/orders');
+  } catch (e) {
     console.warn(e);
   }
 });

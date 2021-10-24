@@ -1,4 +1,4 @@
-<h1>Добавитль новый курс</h1>
+<h1>Добавить курсы</h1>
 
 <form action="/add" method="POST">
   <div class="input-field col s6">
@@ -14,12 +14,12 @@
   </div>
 
   <div class="input-field col s6">
-    <input id="img" name="img" type="text" class="validate" required>
-    <label for="img">URL Картинки</label>
-    <span class="helper-text" data-error="Введите url картинки"></span>
+    <input id="img" name="imgURL" type="text" class="validate" required min="1">
+    <label for="img">URL Картинки курса</label>
+    <span class="helper-text" data-error="Введите URL картинке"></span>
   </div>
 
   <input type="hidden" name="_csrf" value="{{csrf}}">
-  
-  <button class="btn btn-primary"> Добавить курс</button>
+
+  <button class="btn btn-primary">Добавить курс</button>
 </form>
