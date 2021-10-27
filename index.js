@@ -14,19 +14,20 @@ const MongoStore = require('connect-mongodb-session')(session);
 const mongoose = require('mongoose');
 const varMiddleware = require('./middleware/variables');
 const userMiddleware = require('./middleware/user');
+const keys = require('./keys');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-const MONGO_PASS = '3U4fxZU3cchM3BMP';
-const MONGO_URI = `mongodb+srv://Eshmanski:${MONGO_PASS}@cluster0.lr9ll.mongodb.net/shop`;
+
 const store = new MongoStore({
   collection: 'sessions',
-  uri: MONGO_URI
+  uri: keys.MONGODB_URI
 });
 
 const hbs = exphbs.create({
   defaultLayout: 'main',
-  extname: 'hbs'
+  extname: 'hbs',
+  helpers: require('./utils/hbs-helpers')
 });
 
 app.engine('hbs', hbs.engine);
@@ -35,7 +36,7 @@ app.set('view engine', 'hbs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({extended: true}));
 app.use(session({
-  secret: 'some secret value',
+  secret: keys.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   store
@@ -54,7 +55,7 @@ app.use('/auth', authRoutes);
 
 async function start() {
   try {
-    await mongoose.connect(MONGO_URI, { useNewUrlParser: true });
+    await mongoose.connect(keys.MONGODB_URI, { useNewUrlParser: true });
 
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

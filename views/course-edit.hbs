@@ -1,3 +1,4 @@
+
 {{#with course}}
   <h1>Редактировать {{title}}</h1>
 
@@ -43,7 +44,7 @@
       <span class="helper-text" data-error="Введите URL картинке"></span>
     </div>
 
-    <input type="hidden" name="id" value="{{id}}">
+    <input type="hidden" name="id" value="{{_id}}">
 
     <input type="hidden" name="_csrf" value="{{@root.csrf}}">
 
@@ -51,7 +52,7 @@
   </form>
 
   <form action="/courses/remove" method="POST">
-    <input type="hidden" name="id" value="{{id}}">
+    <input type="hidden" name="id" value="{{_id}}">
 
     <input type="hidden" name="_csrf" value="{{@root.csrf}}">
 
