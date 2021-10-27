@@ -27,11 +27,12 @@ router.get('/login', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const {email, password} = req.body;
-
     const candidate = await User.findOne({ email });
 
+    console.log(password)
     if (candidate) {
       const areSame = await bcrypt.compare(password, candidate.password);
+      console.log(areSame)
 
       if (areSame) {
         req.session.userId = candidate._id;
@@ -60,36 +61,22 @@ router.get('/logout', async (req, res) => {
 
 router.post('/register', registerValidators, async (req, res) => {
     try {
-      let errorMessage;
-      
-      const {email, name, password, confirm} = req.body;
-  
-      const candidate = await User.findOne({email});
-
+      const {email, name, password} = req.body;
       const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        req.flash('registerError', errors.array()[0].msg)
 
+      if (!errors.isEmpty()) {
+        req.flash('registerError', errors.array()[0].msg);
         return res.status(422).redirect('/auth/login#register');
       }
  
-      if (!candidate) {
-        if (password === confirm) {
-          const hashPassword = await  bcrypt.hash(password, 10);
-          const user = new User({
-            email, name, password: hashPassword, cart: {items: []}
-          });
+      const hashPassword = await bcrypt.hash(password, 10);
+      const user = new User({
+        email, name, password: hashPassword, cart: {items: []}
+      });
     
-          await user.save();
-
-          await transporter.sendMail(regEmail(email));
-
-          return res.redirect('/auth/login#login');
-        } else errorMessage = 'Пароли не совпадают';
-      } else errorMessage = 'Пользователь с таким email уже существует';
-      
-      req.flash('registerError', errorMessage);
-      res.redirect('/auth/login#register');
+      await user.save();
+      await transporter.sendMail(regEmail(email));
+      return res.redirect('/auth/login#login');
     } catch (e) {
       console.log(e);
     }
@@ -112,7 +99,6 @@ router.post('/reset', (req, res) => {
       }
 
       const token = buffer.toString('hex');
-
       const candidate = await User.findOne({email: req.body.email});
 
       if (candidate) {
@@ -120,7 +106,6 @@ router.post('/reset', (req, res) => {
         candidate.resetTokenExp = Date.now() + 360000;
 
         await candidate.save();
-
         await transporter.sendMail(resetEmail(candidate.email, token));
         
         res.redirect('/auth/login#login');
