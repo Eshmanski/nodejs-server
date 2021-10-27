@@ -98,7 +98,7 @@ router.post('/reset', (req, res) => {
   try {
     crypto.randomBytes(32, async (err, buffer) => {
       if (err) {
-        req.flash('error', 'Что-то пошло нет такб пвторите попытку позже');
+        req.flash('error', 'Что-то пошло нет так повторите попытку позже');
         return res.redirect('/auth/reset');
       }
 
@@ -135,7 +135,6 @@ router.get('/password/:token', async (req, res) => {
       resetTokenExp: {$gt: Date.now()}
     });
 
-    console.log(user);
     if(!user) {
       return res.redirect('/auth/login');
     } else {
