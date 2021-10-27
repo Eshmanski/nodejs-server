@@ -44,12 +44,16 @@ router.get('/:id/edit', auth, async (req, res) => {
 });
 
 router.get('/:id', async (req, res) => {
-  const course = await Course.findById(req.params.id).lean();
+  try {
+    const course = await Course.findById(req.params.id).lean();
 
-  res.render('course', {
-    title: `Курс ${course.title}`,
-    course
-  });
+    res.render('course', {
+      title: `Курс ${course.title}`,
+      course
+    });
+  } catch (e) {
+    console.log(e);
+  }
 });
 
 router.post('/edit', auth, async (req, res) => {
@@ -77,7 +81,8 @@ router.post('/edit', auth, async (req, res) => {
 router.post('/remove', auth, async (req, res) => {
   try {
     await Course.deleteOne({
-      _id: req.body.id
+      _id: req.body.id,
+      userId: req.user._id
     });
 
     res.redirect('/courses');
