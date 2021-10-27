@@ -36,9 +36,9 @@
       {{#if registerError}}
         <p class="alert">{{registerError}}</p>
       {{/if}} 
-      <form action="/auth/register" method="POST">
+      <form action="/auth/register" method="POST" novalidate>
         <div class="input-field">
-          <input id="r-email" name="email" type="email" class="validate" required>
+          <input id="r-email" name="email" type="email" class="validate" >
           <label for="r-email">Email</label>
           <span class="helper-text" data-error="Введите email"></span>
         </div>
