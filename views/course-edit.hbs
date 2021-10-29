@@ -2,6 +2,10 @@
 {{#with course}}
   <h1>Редактировать {{title}}</h1>
 
+  {{#if @root.error}}
+    <p class="alert">{{@root.error}}</p>
+  {{/if}}
+
   <form action="/courses/edit" method="POST" class="course-form">
     <div class="input-field col s6">
       <input 
