@@ -1,17 +1,24 @@
 const { Router } = require('express');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
-const sendgrid = require('nodemailer-sendgrid-transport');
 const User = require('../models/user');
 const keys = require('../keys');
 const regEmail = require('../emails/registration');
 const resetEmail = require('../emails/reset');
+const { registerValidators, loginValidators } = require('../utils/validators')
 const router = Router();
 
-const transporter = nodemailer.createTransport(sendgrid({
-  auth: {api_key: keys.SENDGRID_API_KEY}
-}));
+const transporter = nodemailer.createTransport({
+  host: 'smtp.sendgrid.net',
+  port: 465,
+  secure: true,
+  auth: {
+    user: 'apikey',
+    pass: keys.SENDGRID_API_KEY
+  }
+});
 
 router.get('/login', async (req, res) => {
   res.render('auth/login', {
@@ -22,27 +29,31 @@ router.get('/login', async (req, res) => {
   });
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', loginValidators, async (req, res) => {
   try {
-    const {email, password} = req.body;
+    const errors = validationResult(req);
 
-    const candidate = await User.findOne({ email });
-
-    if (candidate) {
-      const areSame = await bcrypt.compare(password, candidate.password);
-
-      if (areSame) {
-        req.session.userId = candidate._id;
-        req.session.isAuthenticated = true;
-      
-        return req.session.save((err) => {
-          if (err) throw err;
-      
-          res.redirect('/');
-        });
-      }
+    if (!errors.isEmpty()) {
+      req.flash('loginError', errors.array()[0].msg);
+      return res.redirect('/auth/login#login');
     }
 
+    const {email, password} = req.body;
+
+    const user = await User.findOne({ email });
+    const areSame = await bcrypt.compare(password, user.password);
+
+    if (areSame) {
+      req.session.userId = user._id;
+      req.session.isAuthenticated = true;
+    
+      return req.session.save((err) => {
+        if (err) throw err;
+    
+        res.redirect('/');
+      });
+    }
+    
     req.flash('loginError',  'Неправильный логин или пароль');
     res.redirect('/auth/login#login');
   } catch (e) {
@@ -56,31 +67,24 @@ router.get('/logout', async (req, res) => {
   });
 });
 
-router.post('/register', async (req, res) => {
+router.post('/register', registerValidators, async (req, res) => {
     try {
-      let errorMessage;
-      
-      const {email, name, password, confirm} = req.body;
-  
-      const candidate = await User.findOne({email});
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        req.flash('registerError', errors.array()[0].msg);
+        return res.status(422).redirect('/auth/login#register');
+      }
  
-      if (!candidate) {
-        if (password === confirm) {
-          const hashPassword = await  bcrypt.hash(password, 10);
-          const user = new User({
-            email, name, password: hashPassword, cart: {items: []}
-          });
+      const {email, name, password} = req.body;
+      const hashPassword = await bcrypt.hash(password, 10);
+      const user = new User({
+        email, name, password: hashPassword, cart: {items: []}
+      });
     
-          await user.save();
-
-          await transporter.sendMail(regEmail(email));
-
-          return res.redirect('/auth/login#login');
-        } else errorMessage = 'Пароли не совпадают';
-      } else errorMessage = 'Пользователь с таким email уже существует';
-      
-      req.flash('registerError', errorMessage);
-      res.redirect('/auth/login#register');
+      await user.save();
+      await transporter.sendMail(regEmail(email));
+      return res.redirect('/auth/login#login');
     } catch (e) {
       console.log(e);
     }
@@ -103,7 +107,6 @@ router.post('/reset', (req, res) => {
       }
 
       const token = buffer.toString('hex');
-
       const candidate = await User.findOne({email: req.body.email});
 
       if (candidate) {
@@ -111,7 +114,6 @@ router.post('/reset', (req, res) => {
         candidate.resetTokenExp = Date.now() + 360000;
 
         await candidate.save();
-
         await transporter.sendMail(resetEmail(candidate.email, token));
         
         res.redirect('/auth/login#login');
