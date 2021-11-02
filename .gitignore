@@ -1,2 +1,4 @@
 node_modules
-keys/index.js
+images/*
+!images/.gitkeep
+keys/keys-dev.js
