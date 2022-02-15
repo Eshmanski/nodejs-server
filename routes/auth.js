@@ -1,8 +1,8 @@
 const { Router } = require('express');
+const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { validationResult } = require('express-validator');
-const nodemailer = require('nodemailer');
+const  sgMail = require('@sendgrid/mail');
 const User = require('../models/user');
 const keys = require('../keys');
 const regEmail = require('../emails/registration');
@@ -10,15 +10,7 @@ const resetEmail = require('../emails/reset');
 const { registerValidators, loginValidators } = require('../utils/validators')
 const router = Router();
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.sendgrid.net',
-  port: 465,
-  secure: true,
-  auth: {
-    user: 'apikey',
-    pass: keys.SENDGRID_API_KEY
-  }
-});
+sgMail.setApiKey(keys.SENDGRID_API_KEY);
 
 router.get('/login', async (req, res) => {
   res.render('auth/login', {
@@ -83,7 +75,9 @@ router.post('/register', registerValidators, async (req, res) => {
       });
     
       await user.save();
-      await transporter.sendMail(regEmail(email));
+      await sgMail.send(regEmail(email))
+          .then((res) => console.log(res))
+          .catch((e) => console.log(e.response.body));
       return res.redirect('/auth/login#login');
     } catch (e) {
       console.log(e);
@@ -114,7 +108,7 @@ router.post('/reset', (req, res) => {
         candidate.resetTokenExp = Date.now() + 360000;
 
         await candidate.save();
-        await transporter.sendMail(resetEmail(candidate.email, token));
+        await sgMail.send(resetEmail(candidate.email, token));
         
         res.redirect('/auth/login#login');
       } else {

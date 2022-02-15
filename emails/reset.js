@@ -5,6 +5,7 @@ module.exports = function(email, token) {
     to: email,
     from: keys.EMAIL_FROM,
     subject: 'Восстановление доступа',
+    text: '123',
     html: `
     <h1>Вы забыли пароль?</h1>
     <p>Если нет то проигнорируйте данное письмо.</p>
